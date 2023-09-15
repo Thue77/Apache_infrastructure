@@ -66,6 +66,7 @@ services:
       - 8888:8888
     volumes:
       - ./src/jupyter:/opt/workspace
+      - ./settings/jupyter:/root/.vscode-server
     networks:
       - my_persistent_network 
     depends_on:
@@ -160,7 +161,7 @@ services:
     networks:
       - my_persistent_network 
   airflow:
-    image: docker.io/bitnami/airflow:2
+    image: airflow
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
       - AIRFLOW_DATABASE_USERNAME=bn_airflow
@@ -170,7 +171,8 @@ services:
       - AIRFLOW_USERNAME=user
       - AIRFLOW_EMAIL=user@example.com
     volumes:
-      - './data/airflow_data:/opt/bitnami/airflow/dags'
+      - ./src/airflow_dags:/opt/bitnami/airflow/dags
+      - ./settings/jupyter:/root/.vscode-server
     ports:
       - '8080:8080' 
     networks:
