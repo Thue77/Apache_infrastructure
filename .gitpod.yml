@@ -5,8 +5,8 @@
 # Learn more from ready-to-use templates: https://www.gitpod.io/docs/introduction/getting-started/quickstart
 
 tasks:
-  - name: build docker images
-    command: bash build.sh
+  # - name: build docker images
+  #   command: bash build.sh
 
   - name: run docker images
     command: docker-compose up -d
