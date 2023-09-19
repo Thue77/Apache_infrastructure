@@ -245,7 +245,7 @@ services:
     volumes:
         # - ./nifi_registry/database:/opt/nifi-registry/nifi-registry-current/database
         # - ./nifi_registry/flow_storage:/opt/nifi-registry/nifi-registry-current/flow_storage
-        - ./src/nifi:/usr/src
+        - ./src/nifi_ingest:/usr/src
         # uncomment the next line after copying the /conf directory from the container to your local directory to persist NiFi flows
         # Run docker cp <Container ID>:/opt/nifi-registry/nifi-registry-current/conf ./nifi_registry/
         # - ./providers.xml:/opt/nifi-registry/nifi-registry-current/conf/providers.xml

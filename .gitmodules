@@ -1,0 +1,3 @@
+[submodule "src/nifi_ingest"]
+	path = src/nifi_ingest
+	url = https://github.com/Thue77/test_nifi_ingestion.git
