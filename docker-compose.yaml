@@ -62,8 +62,8 @@ services:
 
   jupyterlab:
     build:
-      context: ./jupyterlab
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: jupyterlab/Dockerfile
     # image: jupyterlab
     container_name: jupyterlab
     ports:
@@ -77,8 +77,8 @@ services:
       - spark-master
   spark-master:
     build:
-      context: ./spark-master
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: spark-master/Dockerfile
     # image: spark-master
     container_name: spark-master
     environment:
@@ -95,8 +95,8 @@ services:
       - my_persistent_network  
   spark-worker-1:
     build:
-      context: ./spark-worker
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: spark-worker/Dockerfile
     # image: spark-worker
     container_name: spark-worker-1
     environment:
@@ -113,8 +113,8 @@ services:
       - my_persistent_network  
   spark-worker-2:
     build:
-      context: ./spark-worker
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: spark-worker/Dockerfile
     # image: spark-worker
     container_name: spark-worker-2
     environment:
@@ -131,10 +131,7 @@ services:
       - my_persistent_network  
 
   postgresql:
-    build:
-      context: ./postgresql
-      dockerfile: Dockerfile
-    # image: docker.io/bitnami/postgresql:15
+    image: docker.io/bitnami/postgresql:15
     volumes:
       - './data/postgresql_data:/bitnami/postgresql'
     environment:
@@ -148,10 +145,7 @@ services:
     networks:
       - my_persistent_network 
   redis:
-    build:
-      context: ./redis
-      dockerfile: Dockerfile
-    # image: docker.io/bitnami/redis:7.0
+    image: docker.io/bitnami/redis:7.0
     volumes:
       - './data/redis_data:/bitnami'
     environment:
@@ -161,8 +155,8 @@ services:
       - my_persistent_network 
   airflow-scheduler:
     build:
-      context: ./airflow-scheduler
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: airflow-scheduler/Dockerfile
     # image: airflow-scheduler
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
@@ -180,8 +174,8 @@ services:
       - my_persistent_network 
   airflow-worker:
     build:
-      context: ./airflow-worker
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: airflow-worker/Dockerfile
     # image: airflow-worker
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
@@ -199,8 +193,8 @@ services:
       - my_persistent_network 
   airflow:
     build:
-      context: ./airflow
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: airflow/Dockerfile
     # image: airflow
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
