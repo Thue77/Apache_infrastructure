@@ -4,14 +4,16 @@ FROM cluster-base
 
 ARG spark_version=3.3.3
 ARG jupyterlab_version=4.0.5
+ARG python_version=python3.9
 
 RUN apt-get update -y && \
-    apt-get install -y python3-pip && \
-    pip3 install wget pyspark==${spark_version} jupyterlab==${jupyterlab_version}
+    # source ./opt/bitnami/python/bin/activate && \
+    # apt-get install -y ${python_version}-pip && \
+    python -m pip install wget pyspark==${spark_version} jupyterlab==${jupyterlab_version}
 
 # Install libraries
 COPY requirements.txt ./project_dependencies/
-RUN python3 -m pip install -r ./project_dependencies/requirements.txt
+RUN python -m pip install -r ./project_dependencies/requirements.txt
 
 # -- Runtime
 

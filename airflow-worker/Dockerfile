@@ -1,4 +1,4 @@
-FROM docker.io/bitnami/airflow:2.7.1
+FROM docker.io/bitnami/airflow-worker:2
 
 ARG spark_version=3.3.3
 ARG hadoop_version=3
@@ -23,25 +23,6 @@ RUN apt-get update -y && \
     rm spark.tgz
 
 ENV SPARK_HOME /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}
-
-# Give airflow user permission to execute spark jars
-RUN chown -R 1001 /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version} \
-    && chmod -R u=rx /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}
-
-
-# Make directory for VS Code extensions
-RUN mkdir -p /.vscode-server \
-    && chown -R 1001 /.vscode-server
-
-# Create directory for python scripts
-RUN mkdir -p /opt/bitnami/python/scripts
-
-# Add python scripts to python path
-RUN export PYTHONPATH=/opt/bitnami/python/scripts
-
-# Let airflow user activate virtual environment
-RUN chown 1001 /opt/bitnami/airflow/venv/bin/activate \
-    && chmod u=rx /opt/bitnami/airflow/venv/bin/activate
 
 # Add python requirements file
 COPY ./dependencies/requirements.txt ./bitnami/python/requirements.txt

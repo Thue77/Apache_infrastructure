@@ -16,7 +16,7 @@ services:
     environment:
       - CLUSTER_NAME=test
       # - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-      - "ENSURE_NAMENODE_DIR=/tmp/hadoop-root/dfs/name"
+      - "ENSURE_NAMENODE_DIR=/tmp/hadoop-hadoop/dfs/name"
     volumes:
       - hdfs-config:/opt/hadoop/etc/hadoop
     env_file:
@@ -28,9 +28,10 @@ services:
     command: ["hdfs", "datanode"]
     environment:
       SERVICE_PRECONDITION: "namenode:9870"
+      ENSURE_DATANODE_DIR: "/tmp/hadoop-root/dfs/data"
       # CORE_CONF_fs_defaultFS: hdfs://namenode:9000
     # volumes:
-    #   - data-storage:/tmp/hadoop-hadoop/dfs
+    #   - ./data/datanode:/tmp/hadoop-hadoop/dfs/data
     ports:
       - "9864:9864"
     env_file:
@@ -141,23 +142,35 @@ services:
     networks:
       - my_persistent_network 
   airflow-scheduler:
-    image: docker.io/bitnami/airflow-scheduler:2
+    image: airflow-scheduler
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
       - AIRFLOW_DATABASE_USERNAME=bn_airflow
       - AIRFLOW_DATABASE_PASSWORD=bitnami1
       - AIRFLOW_EXECUTOR=CeleryExecutor
       - AIRFLOW_WEBSERVER_HOST=airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
+      - AIRFLOW_LOAD_EXAMPLES=no
+    volumes:
+      - ./src/airflow_dags:/opt/bitnami/airflow/dags
+      - ./src/jupyter/apps:/opt/bitnami/spark/apps
+      # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     networks:
       - my_persistent_network 
   airflow-worker:
-    image: docker.io/bitnami/airflow-worker:2
+    image: airflow-worker
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
       - AIRFLOW_DATABASE_USERNAME=bn_airflow
       - AIRFLOW_DATABASE_PASSWORD=bitnami1
       - AIRFLOW_EXECUTOR=CeleryExecutor
       - AIRFLOW_WEBSERVER_HOST=airflow
+      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
+      - AIRFLOW_LOAD_EXAMPLES=no
+    volumes:
+      - ./src/airflow_dags:/opt/bitnami/airflow/dags
+      - ./src/jupyter/apps:/opt/bitnami/spark/apps
+      # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     networks:
       - my_persistent_network 
   airflow:
@@ -170,9 +183,16 @@ services:
       - AIRFLOW_PASSWORD=bitnami
       - AIRFLOW_USERNAME=user
       - AIRFLOW_EMAIL=user@example.com
+      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
+      - AIRFLOW_LOAD_EXAMPLES=no
+      - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
+      # - AIRFLOW_HOME=/opt/bitnami/airflow
     volumes:
       - ./src/airflow_dags:/opt/bitnami/airflow/dags
-      - ./settings/jupyter:/root/.vscode-server
+      - ./settings/airflow:/.vscode-server
+      - ./src/jupyter/apps:/opt/bitnami/spark/apps
+      - ./src/jupyter/scripts:/opt/bitnami/python/scripts
+      # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     ports:
       - '8080:8080' 
     networks:

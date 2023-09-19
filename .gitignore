@@ -3,3 +3,6 @@ azurite
 .Trash*
 data
 settings/
+__pycache__
+mage_ai/
+mage/scripts/
