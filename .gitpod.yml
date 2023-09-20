@@ -9,7 +9,7 @@ tasks:
   #   command: bash build.sh
 
   - name: run docker images
-    command: echo "Hello World" #docker-compose up -d
+    command: docker-compose up -d
 
 ports:
   - name: airflow
