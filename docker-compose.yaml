@@ -131,9 +131,12 @@ services:
       - my_persistent_network  
 
   postgresql:
-    image: docker.io/bitnami/postgresql:15
+    # image: docker.io/bitnami/postgresql:15
+    build:
+      context: ./
+      dockerfile: postgresql/Dockerfile
     volumes:
-      - './data/postgresql_data:/bitnami/postgresql'
+      - ./data/postgresql_data:/bitnami/postgresql/data
     environment:
       - POSTGRESQL_DATABASE=bitnami_airflow
       - POSTGRESQL_USERNAME=bn_airflow
@@ -145,7 +148,10 @@ services:
     networks:
       - my_persistent_network 
   redis:
-    image: docker.io/bitnami/redis:7.0
+    # image: docker.io/bitnami/redis:7.0
+    build:
+      context: ./
+      dockerfile: redis/Dockerfile
     volumes:
       - './data/redis_data:/bitnami'
     environment:
