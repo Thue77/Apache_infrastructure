@@ -68,8 +68,11 @@ services:
     container_name: jupyterlab
     ports:
       - 8888:8888
+    environment:
+      - PYTHONPATH=/opt/workspace/apps:/opt/workspace/scripts:/opt/workspace/dags
     volumes:
       - ./src/jupyter:/opt/workspace
+      - ./src/airflow_dags:/opt/workspace/dags
       - ./settings/jupyter:/root/.vscode-server
     networks:
       - my_persistent_network 
