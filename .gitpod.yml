@@ -21,4 +21,12 @@ ports:
     port: 8091
     visibility: private
 
+  - name: spark-master
+    port: 8089
+    visibility: private
+
+  - name: namenode
+    port: 9870
+    visibility: private
+
 
