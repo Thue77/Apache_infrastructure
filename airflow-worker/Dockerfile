@@ -24,8 +24,19 @@ RUN apt-get update -y && \
 
 ENV SPARK_HOME /usr/bin/spark-${spark_version}-bin-hadoop${hadoop_version}
 
-# Add python requirements file
+# Add python requirements file with airflow dependencies
 COPY ./dependencies/requirements.txt ./bitnami/python/requirements.txt
+
+# Install python requirements
+RUN source ./opt/bitnami/airflow/venv/bin/activate \
+    && python -m pip install -r /bitnami/python/requirements.txt \
+    && deactivate
+
+# Remove requirements.txt
+RUN rm ./bitnami/python/requirements.txt
+
+# Add python requirements file with depencies for spark jobs
+COPY ./requirements.txt ./bitnami/python/requirements.txt
 
 # Install python requirements
 RUN source ./opt/bitnami/airflow/venv/bin/activate \

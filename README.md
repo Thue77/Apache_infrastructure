@@ -13,3 +13,6 @@ To access Azurite, the uri `http://azurite:10000/devstoreaccount1` should be use
 ### Apache Hudi
 Hudi is not added beforehand, but is downloaded as part of the initiation of the sparkSession in [hudi_test](/src/jupyter/hudi_test.ipynb)
 
+### Handle dependencies
+In this setup, spark is run in a standalone cluster, which means all spark-submit jobs are executed in client mode. Therefore the driver is executed from the client, which is airflow-worker, and thus airflow-worker needs to have access to all necessary dependencies. This includes local modules and packages installed from PyPi. Volumes have been used to ensure simultanous existence on local modules in airflow-worker and jupyterlab. Furthermore, relevant environment variables are added to both containers in the Docker-compose file
+

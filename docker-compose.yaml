@@ -176,9 +176,11 @@ services:
       - AIRFLOW_WEBSERVER_HOST=airflow
       - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
       - AIRFLOW_LOAD_EXAMPLES=no
+      # - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
     volumes:
       - ./src/airflow_dags:/opt/bitnami/airflow/dags
       - ./src/jupyter/apps:/opt/bitnami/spark/apps
+      # - ./src/jupyter/scripts:/opt/bitnami/python/scripts
       # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     networks:
       - my_persistent_network 
@@ -195,9 +197,12 @@ services:
       - AIRFLOW_WEBSERVER_HOST=airflow
       - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
       - AIRFLOW_LOAD_EXAMPLES=no
+      - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
+      - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
     volumes:
       - ./src/airflow_dags:/opt/bitnami/airflow/dags
       - ./src/jupyter/apps:/opt/bitnami/spark/apps
+      - ./src/jupyter/scripts:/opt/bitnami/python/scripts
       # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     networks:
       - my_persistent_network 
@@ -216,13 +221,13 @@ services:
       - AIRFLOW_EMAIL=user@example.com
       - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
       - AIRFLOW_LOAD_EXAMPLES=no
-      - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
+      # - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
       # - AIRFLOW_HOME=/opt/bitnami/airflow
     volumes:
       - ./src/airflow_dags:/opt/bitnami/airflow/dags
       - ./settings/airflow:/.vscode-server
-      - ./src/jupyter/apps:/opt/bitnami/spark/apps
-      - ./src/jupyter/scripts:/opt/bitnami/python/scripts
+      # - ./src/jupyter/apps:/opt/bitnami/spark/apps
+      # - ./src/jupyter/scripts:/opt/bitnami/python/scripts
       # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     ports:
       - '8080:8080' 
