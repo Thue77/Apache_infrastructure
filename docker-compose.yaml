@@ -70,6 +70,7 @@ services:
       - 8888:8888
     environment:
       - PYTHONPATH=/opt/workspace/apps:/opt/workspace/scripts:/opt/workspace/dags
+      - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
     volumes:
       - ./src/jupyter:/opt/workspace
       - ./src/airflow_dags:/opt/workspace/dags
