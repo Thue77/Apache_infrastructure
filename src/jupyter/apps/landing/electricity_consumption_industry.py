@@ -28,7 +28,7 @@ spark_config.add_storage_account_access(storage_account_name, method='access_key
 
 # Build SparkSession
 logger.info("Building SparkSession")
-spark = SparkSessionBuilder("ElectricityConsumptionIndustry", "spark://spark-master:7077", spark_config).build()
+spark = SparkSessionBuilder("ElectricityConsumptionIndustry", spark_config).build()
 
 # Set dataset name and landing path
 dataset_name = "ConsumptionDK3619codehour"

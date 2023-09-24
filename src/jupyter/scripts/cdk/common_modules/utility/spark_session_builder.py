@@ -10,9 +10,9 @@ class SparkSessionBuilder:
     '''Class to build SparkSession
     '''
 
-    def __init__(self, app_name: str, master: str, spark_config: SparkConfig):
+    def __init__(self, app_name: str, spark_config: SparkConfig):
         self.app_name = app_name
-        self.master = master
+        self.master = "spark://spark-master:7077"
         self.spark_config = spark_config
     
     def build(self):
