@@ -1,5 +1,8 @@
 import requests
 
+# Custom exception for EnergiDataService
+class EnergiDataServiceException(Exception):
+    pass
 
 class EnergiDataService:
     def __init__(self, dataset):
@@ -15,7 +18,8 @@ class EnergiDataService:
             "timezone": "dk"
         }
         response = requests.get(self.url, params=params)
-        print(f"Status code: {response.status_code}")
+        if response.status_code != 200:
+            raise EnergiDataServiceException(f"Error getting data from {self.dataset}. Status code: {response.status_code}")
         return response.json()[self.data_field]
 
 

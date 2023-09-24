@@ -18,7 +18,7 @@ class SparkSessionBuilder:
     def build(self):
         spark_session = (
             SparkSession.builder.appName(self.app_name)
-            # .master(self.master)
+            .master(self.master)
             .config("spark.executor.memory", "512m")
         )
         for key, value in self.spark_config.configurations.items():
