@@ -29,17 +29,18 @@ class DeltaState:
         storage_account_name (str): Name of the storage account
         layer (str): Name of the layer. Example: landing
     '''
-    def __init__(self, spark: SparkSession, storage_account_name: str, layer: str, dataset_name: str) -> None:
+    def __init__(self, spark: SparkSession, storage_account_name: str, to_layer: str, from_dataset_name: str, to_dataset_name: str) -> None:
         self.spark = spark
-        self.dataset_name = dataset_name
-        self.layer = layer
+        self.from_dataset_name = from_dataset_name
+        self.to_dataset_name = to_dataset_name
+        self.to_layer = to_layer
         self.delta_table_name = 'delta_table'
         self.delta_container_name = 'utility'
         self.delta_path = f"abfss://{self.delta_container_name}@{storage_account_name}.dfs.core.windows.net/delta/{self.delta_table_name}"
         self.hudi_options = {
                             'hoodie.table.name': self.delta_table_name,
                             'hoodie.datasource.write.keygenerator.class': 'org.apache.hudi.keygen.ComplexKeyGenerator',
-                            'hoodie.datasource.write.recordkey.field': 'DatasetName,Layer',
+                            'hoodie.datasource.write.recordkey.field': 'FromDatasetName,ToDatasetName,ToLayer',
                             'hoodie.datasource.write.partitionpath.field': '',
                             'hoodie.datasource.write.table.name': self.delta_table_name,
                             'hoodie.datasource.write.operation': 'upsert',
@@ -55,7 +56,7 @@ class DeltaState:
         try:
             delta_state = (
                 self.spark.read.format('hudi').load(self.delta_path)
-                    .filter((F.col('DatasetName')==self.dataset_name) & (F.col('Layer')==self.layer))
+                    .filter((F.col('ToDatasetName')==self.to_dataset_name) & (F.col('FromDatasetName')==self.from_dataset_name))
                     .select('DeltaState').collect()[0][0]
             )
         except Exception as e:
@@ -71,5 +72,5 @@ class DeltaState:
         '''
         Set the delta state of the dataset
         '''
-        df = self.spark.createDataFrame([(self.dataset_name, self.layer, delta_state)], ['DatasetName', 'Layer', 'DeltaState'])
+        df = self.spark.createDataFrame([(self.from_dataset_name, self.to_dataset_name, self.to_layer, delta_state)], ['FromDatasetName', 'ToDatasetName', 'ToLayer', 'DeltaState'])
         df.write.format('hudi').options(**self.hudi_options).mode('append').save(self.delta_path)

@@ -37,10 +37,10 @@ spark = SparkSessionBuilder("ElectricityConsumptionIndustry", spark_config).buil
 # Set dataset name and landing path
 dataset_name = "ConsumptionDK3619codehour"
 dataset_path = "energi_data_service"
-container_name = "landing"
+container_name = "bronze"
 
 # landing_path = f"hdfs://namenode:9000/data/landing/energi_data_service/{dataset_name}"
-landing_path = f"abfss://{container_name}@{storage_account_name}.dfs.core.windows.net/{dataset_path}"
+bronze_path = f"abfss://{container_name}@{storage_account_name}.dfs.core.windows.net/{dataset_path}"
 
 
 
@@ -57,12 +57,12 @@ hudi_options = {
     'hoodie.insert.shuffle.parallelism': 1
 }
 
-
-today = datetime.today()
+# The api will have a lag of 8 days
+max_date = datetime.today() - timedelta(days=8) 
 
 # Create DeltaState object
 logger.appinfo("Creating DeltaState object")
-delta_state = DeltaState(spark, storage_account_name, container_name, dataset_name)
+delta_state = DeltaState(spark, storage_account_name, container_name, dataset_path + dataset_name, dataset_name)
 
 while True:
     # Get the delta state
@@ -93,12 +93,12 @@ while True:
     df.write.format("org.apache.hudi"). \
         options(**hudi_options). \
         mode("append"). \
-        save(landing_path)
+        save(bronze_path)
 
     # Update the delta state
     delta_state.set_delta_state(end_date.strftime("%Y-%m-%dT%H:%M"))
 
     # Break if the end date is greater than or equal to today
-    if end_date >= today:
+    if end_date >= max_date:
         logger.appinfo("End date is greater than or equal to today")
         break

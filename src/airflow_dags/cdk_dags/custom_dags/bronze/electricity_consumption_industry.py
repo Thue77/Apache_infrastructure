@@ -31,7 +31,7 @@ with DAG("landing_electricity_consumption_industry",start_date=datetime(2023,5,2
 
     api_to_landing = SparkSubmitOperator(
         task_id = "api_to_landing",
-        application = "/opt/bitnami/spark/apps/landing/electricity_consumption_industry.py",
+        application = "/opt/bitnami/spark/apps/bronze/electricity_consumption_industry.py",
         conn_id = "spark_conn",
         verbose = True,
         outlets = [landing_dataset],
