@@ -21,6 +21,14 @@ class SparkConfig:
         }
         # Use this to add hudi config to spark config
         self.configurations.update(hudi_config)
+
+    def add_delta_config(self):
+        delta_config = {
+            "spark.sql.catalog.spark_catalog":"org.apache.spark.sql.delta.catalog.DeltaCatalog"
+            ,"spark.sql.extensions":"io.delta.sql.DeltaSparkSessionExtension"
+        }
+        # Use this to add hudi config to spark config
+        self.configurations.update(delta_config)
     
     def add_jars_to_install(self, jars: List):
         '''method to add jars to install to spark config.
@@ -32,6 +40,7 @@ class SparkConfig:
         jar = {
             'hudi': 'org.apache.hudi:hudi-spark3.3-bundle_2.12:0.13.1'
             ,'azure_storage': 'org.apache.hadoop:hadoop-azure:3.3.3'
+            ,'delta': 'io.delta:delta-core_2.12:2.3.0'
         }
         try:
             jar_config = {
@@ -44,6 +53,9 @@ class SparkConfig:
         if 'hudi' in jars:
             '''Add hudi config if hudi jar is installed'''
             self.add_hudi_config()
+        if 'delta' in jars:
+            '''Add delta config if delta jar is installed'''
+            self.add_delta_config()
 
         # Use this to add jars to install to spark config
         self.configurations.update(jar_config)
