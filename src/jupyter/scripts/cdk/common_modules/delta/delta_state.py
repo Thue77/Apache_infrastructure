@@ -42,6 +42,7 @@ class DeltaState:
                             'hoodie.datasource.write.keygenerator.class': 'org.apache.hudi.keygen.ComplexKeyGenerator',
                             'hoodie.datasource.write.recordkey.field': 'FromDatasetName,ToDatasetName,ToLayer',
                             'hoodie.datasource.write.partitionpath.field': '',
+                            'hoodie.datasource.write.table.type': 'MERGE_ON_READ',
                             'hoodie.datasource.write.table.name': self.delta_table_name,
                             'hoodie.datasource.write.operation': 'upsert',
                             'hoodie.datasource.write.precombine.field': 'DeltaState',

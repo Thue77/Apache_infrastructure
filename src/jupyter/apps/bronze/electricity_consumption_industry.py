@@ -50,6 +50,7 @@ hudi_options = {
     'hoodie.datasource.write.keygenerator.class': 'org.apache.hudi.keygen.ComplexKeyGenerator',
     'hoodie.datasource.write.recordkey.field': 'HourUTC,DK19Code,DK36Code',
     'hoodie.datasource.write.partitionpath.field': '',
+    'hoodie.datasource.write.table.type': 'COPY_ON_WRITE',
     'hoodie.datasource.write.table.name': dataset_name,
     'hoodie.datasource.write.operation': 'upsert',
     'hoodie.datasource.write.precombine.field': 'HourUTC',
@@ -58,7 +59,7 @@ hudi_options = {
 }
 
 # The api will have a lag of 8 days
-max_date = datetime.today() - timedelta(days=8) 
+max_date = datetime.strptime('2023-09-02T00:00', "%Y-%m-%dT%H:%M") # datetime.today() - timedelta(days=8) 
 
 # Create DeltaState object
 logger.appinfo("Creating DeltaState object")
