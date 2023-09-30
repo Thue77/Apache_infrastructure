@@ -1,24 +1,30 @@
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
-
 from typing import Protocol,List
 
-class DeltaStore(Protocol):
-    '''Interface for delta store
+class StateConnector(Protocol):
     '''
-    dataset_name: str
+    Interface for connector object that holds the information needed by Hudistore
 
-    def get_delta_state(self) -> str:
-        '''Get the delta state of the dataset
-        '''
-        ...
-    
-    def set_delta_state(self) -> str:
-        '''Set the delta state of the dataset
-        '''
-        ...
+    Args:
+        from_dataset_name (str): Name of the source dataset
+        to_dataset_name (str): Name of the dataset related to the delta state is located
+        group_name (str): Name of the folder in which the dataset related to the delta state is located
+        to_layer (str): Name of the layer in which the dataset related to the delta state is located
+        spark (SparkSession): SparkSession - Must be configured with the correct storage account access
+        delta_entity_name (str): Name of the entity
+        delta_path (str): Path to the delta table. Varies depending on selection of storage solution
+    '''
+    from_dataset_name: str
+    to_dataset_name: str
+    group_name: str
+    to_layer: str
+    spark: SparkSession
+    delta_entity_name: str
+    delta_path: str
 
-class DeltaState:
+
+class HudiStore:
     '''
     Class to keep track of the delta states of the system. Mainly used to keep track of
     what data has been ingested into the lakehouse.
@@ -29,14 +35,13 @@ class DeltaState:
         storage_account_name (str): Name of the storage account
         layer (str): Name of the layer. Example: landing
     '''
-    def __init__(self, spark: SparkSession, storage_account_name: str, to_layer: str, from_dataset_name: str, to_dataset_name: str) -> None:
-        self.spark = spark
-        self.from_dataset_name = from_dataset_name
-        self.to_dataset_name = to_dataset_name
-        self.to_layer = to_layer
-        self.delta_table_name = 'delta_table'
-        self.delta_container_name = 'utility'
-        self.delta_path = f"abfss://{self.delta_container_name}@{storage_account_name}.dfs.core.windows.net/delta/{self.delta_table_name}"
+    def __init__(self, state_connector: StateConnector) -> None:
+        self.spark = state_connector.spark
+        self.from_dataset_name = state_connector.from_dataset_name
+        self.to_dataset_name = state_connector.to_dataset_name
+        self.to_layer = state_connector.to_layer
+        self.delta_table_name = state_connector.delta_entity_name
+        self.delta_path = state_connector.delta_path + '/' + self.delta_table_name #f"abfss://{self.delta_container_name}@{storage_account_name}.dfs.core.windows.net/delta/{self.delta_table_name}"
         self.hudi_options = {
                             'hoodie.table.name': self.delta_table_name,
                             'hoodie.datasource.write.keygenerator.class': 'org.apache.hudi.keygen.ComplexKeyGenerator',
