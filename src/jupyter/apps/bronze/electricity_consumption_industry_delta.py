@@ -4,8 +4,8 @@ from pathlib import Path
 
 from cdk.services.api.energi_data_service import EnergiDataService
 from cdk.common_modules.access.secrets import Secrets
-from cdk.common_modules.utility.spark_config import SparkConfig
-from cdk.common_modules.utility.spark_session_builder import SparkSessionBuilder
+from cdk.common_modules.spark.spark_config import SparkConfig
+from cdk.common_modules.spark.spark_session_builder import SparkSessionBuilder
 from cdk.common_modules.models.connectors.hudi import HudiConnector
 from cdk.common_modules.delta_stores.delta_state import DeltaState
 from cdk.common_modules.utility.logging import Logger
@@ -25,7 +25,7 @@ spark_config = SparkConfig(Secrets())
 
 # Add jars to install
 logger.appinfo("Adding jars to install")
-spark_config.add_jars_to_install(['delta', 'azure_storage'])
+spark_config.add_jars_to_install(['delta', 'hudi', 'azure_storage'])
 
 # Add storage account access
 logger.appinfo("Adding storage account access")
@@ -47,8 +47,8 @@ destination_path = f"abfss://{container_name}@{storage_account_name}.dfs.core.wi
 delta_path = f"abfss://utility@{storage_account_name}.dfs.core.windows.net/delta"
 
 
-# The api will have a lag of 8 days
-max_date = datetime.strptime('2023-09-02T00:00', "%Y-%m-%dT%H:%M") # datetime.today() - timedelta(days=8) 
+# The api will have a lag of 9 days
+max_date = datetime.today() - timedelta(days=9) 
 
 # Create connector for delta state
 logger.appinfo("Creating connector for delta state")
@@ -63,7 +63,7 @@ state_connector = HudiConnector(from_dataset_name=dataset_name,
 
 # Create DeltaState object
 logger.appinfo("Creating DeltaState object")
-delta_state = DeltaState(spark, state_connector)
+delta_state = DeltaState(state_connector).get_delta_store()
 
 while True:
     # Get the delta state
@@ -96,10 +96,10 @@ while True:
         save(destination_path)
 
     # Update the delta state
-    # delta_state.set_delta_state(end_date.strftime("%Y-%m-%dT%H:%M"))
-    break
+    delta_state.set_delta_state(end_date.strftime("%Y-%m-%dT%H:%M"))
+    # break
 
-    # Break if the end date is greater than or equal to today
+    # Break if the end date is greater than or equal to max date
     if end_date >= max_date:
-        logger.appinfo("End date is greater than or equal to today")
+        logger.appinfo("End date is greater than or equal to max date")
         break
