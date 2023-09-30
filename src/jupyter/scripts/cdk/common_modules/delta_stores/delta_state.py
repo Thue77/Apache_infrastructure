@@ -18,7 +18,7 @@ class DeltaStore(Protocol):
     '''
     dataset_name: str
 
-    def get_delta_state(self, default: str = None) -> str:
+    def get_delta_state(self, default: str) -> str:
         '''Get the delta state of the dataset
         '''
         ...

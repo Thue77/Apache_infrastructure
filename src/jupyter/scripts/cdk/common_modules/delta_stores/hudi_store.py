@@ -57,7 +57,7 @@ class HudiStore:
 
     def get_delta_state(self, default_value: str) -> str:
         '''
-        Get the delta state of the dataset
+        Get the delta state of the dataset. If a default value is provided, then the default value is returned if the row does not exist.
         '''
         try:
             delta_state = (
