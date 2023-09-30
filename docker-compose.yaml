@@ -92,9 +92,9 @@ services:
       - 7077:7077
     # volumes:
     #   - shared-workspace:/opt/workspace
-    depends_on:
-      - namenode
-      - datanode
+    # depends_on:
+    #   - namenode
+    #   - datanode
     networks:
       - my_persistent_network  
   spark-worker-1:
