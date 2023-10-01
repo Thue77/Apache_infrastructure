@@ -115,24 +115,24 @@ services:
       - spark-master
     networks:
       - my_persistent_network  
-  spark-worker-2:
-    build:
-      context: ./
-      dockerfile: spark-worker/Dockerfile
-    # image: spark-worker
-    container_name: spark-worker-2
-    environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-      - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=512m
-    ports:
-      - 8082:8081
-    # volumes:
-    #   - shared-workspace:/opt/workspace
-    depends_on:
-      - spark-master
-    networks:
-      - my_persistent_network  
+  # spark-worker-2:
+  #   build:
+  #     context: ./
+  #     dockerfile: spark-worker/Dockerfile
+  #   # image: spark-worker
+  #   container_name: spark-worker-2
+  #   environment:
+  #     - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
+  #     - SPARK_WORKER_CORES=1
+  #     - SPARK_WORKER_MEMORY=512m
+  #   ports:
+  #     - 8082:8081
+  #   # volumes:
+  #   #   - shared-workspace:/opt/workspace
+  #   depends_on:
+  #     - spark-master
+  #   networks:
+  #     - my_persistent_network  
 
   postgresql:
     # image: docker.io/bitnami/postgresql:15

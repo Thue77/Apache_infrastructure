@@ -18,6 +18,16 @@ Logger.addLoggingLevel('APPINFO', logging.INFO - 5)
 logger = Logger.get_logger()
 
 storage_account_name = "adlsthuehomelakehousedev"
+# Set dataset name and landing path
+dataset_name = "ConsumptionDK3619codehour"
+data_source = "energi_data_service"
+dataset_path = data_source + '/' + dataset_name
+container_name = "bronze"
+
+# landing_path = f"hdfs://namenode:9000/data/landing/energi_data_service/{dataset_name}"
+destination_path = f"abfss://{container_name}@{storage_account_name}.dfs.core.windows.net/delta/{dataset_path}"
+
+delta_path = f"abfss://utility@{storage_account_name}.dfs.core.windows.net/delta"
 
 # Set Spark configurations
 logger.appinfo("Setting Spark configurations")
@@ -35,16 +45,6 @@ spark_config.add_storage_account_access(storage_account_name, method='access_key
 logger.appinfo("Building SparkSession")
 spark = SparkSessionBuilder("Delta ElectricityConsumptionIndustry", spark_config).build()
 
-# Set dataset name and landing path
-dataset_name = "ConsumptionDK3619codehour"
-data_source = "energi_data_service"
-dataset_path = data_source + '/' + dataset_name
-container_name = "bronze"
-
-# landing_path = f"hdfs://namenode:9000/data/landing/energi_data_service/{dataset_name}"
-destination_path = f"abfss://{container_name}@{storage_account_name}.dfs.core.windows.net/delta/{dataset_path}"
-
-delta_path = f"abfss://utility@{storage_account_name}.dfs.core.windows.net/delta"
 
 
 # The api will have a lag of 9 days

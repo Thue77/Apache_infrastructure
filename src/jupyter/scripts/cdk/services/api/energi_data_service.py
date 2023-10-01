@@ -10,7 +10,7 @@ class EnergiDataService:
         self.dataset = dataset
         self.data_field = "records"
     
-    def get_data(self, start, end):
+    def get_data(self, start, end, raw = False):
         params = {
             "offset": 0,
             "start": start,
@@ -20,6 +20,8 @@ class EnergiDataService:
         response = requests.get(self.url, params=params)
         if response.status_code != 200:
             raise EnergiDataServiceException(f"Error getting data from {self.dataset}. Status code: {response.status_code}")
+        if raw:
+            return response.json()
         return response.json()[self.data_field]
 
 
