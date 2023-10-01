@@ -6,3 +6,8 @@ settings/
 __pycache__
 mage_ai/
 mage/scripts/
+.env
+adls2.properties
+delta.properties
+hudi.properties
+metastore-site.xml

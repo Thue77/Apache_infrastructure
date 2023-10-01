@@ -1,0 +1,10 @@
+connector.name=delta_lake
+hive.metastore.uri=thrift://hive-metastore:9083
+# hive.s3.endpoint=http://minio:9000
+# hive.s3.aws-access-key=minio
+# hive.s3.aws-secret-key=minio123
+# hive.s3.path-style-access=true
+hive.azure.abfs-storage-account=${data_lake_account_name}
+hive.azure.abfs-access-key=${data_lake_access_key}
+delta.enable-non-concurrent-writes=true
+delta.register-table-procedure.enabled=true

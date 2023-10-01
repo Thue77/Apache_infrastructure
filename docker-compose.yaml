@@ -60,19 +60,19 @@ services:
   #   networks:
   #     - my_persistent_network
 
-  jupyterlab:
+  ad-hoc:
     build:
       context: ./
-      dockerfile: jupyterlab/Dockerfile
+      dockerfile: docker/ad-hoc/Dockerfile
     # image: jupyterlab
-    container_name: jupyterlab
+    container_name: ad-hoc
     ports:
       - 8888:8888
     environment:
       - PYTHONPATH=/opt/workspace/apps:/opt/workspace/scripts:/opt/workspace/dags
       - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
     volumes:
-      - ./src/jupyter:/opt/workspace
+      - ./src/ad-hoc:/opt/workspace
       - ./src/airflow_dags:/opt/workspace/dags
       - ./settings/jupyter:/root/.vscode-server
     networks:
@@ -82,7 +82,7 @@ services:
   spark-master:
     build:
       context: ./
-      dockerfile: spark-master/Dockerfile
+      dockerfile: docker/spark-master/Dockerfile
     # image: spark-master
     container_name: spark-master
     environment:
@@ -100,7 +100,7 @@ services:
   spark-worker-1:
     build:
       context: ./
-      dockerfile: spark-worker/Dockerfile
+      dockerfile: docker/spark-worker/Dockerfile
     # image: spark-worker
     container_name: spark-worker-1
     environment:
@@ -138,7 +138,7 @@ services:
     # image: docker.io/bitnami/postgresql:15
     build:
       context: ./
-      dockerfile: postgresql/Dockerfile
+      dockerfile: docker/postgresql/Dockerfile
     volumes:
       - ./data/postgresql_data:/bitnami/postgresql/data
     environment:
@@ -155,7 +155,7 @@ services:
     # image: docker.io/bitnami/redis:7.0
     build:
       context: ./
-      dockerfile: redis/Dockerfile
+      dockerfile: docker/redis/Dockerfile
     volumes:
       - './data/redis_data:/bitnami'
     environment:
@@ -166,7 +166,7 @@ services:
   airflow-scheduler:
     build:
       context: ./
-      dockerfile: airflow-scheduler/Dockerfile
+      dockerfile: docker/airflow-scheduler/Dockerfile
     # image: airflow-scheduler
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
@@ -187,7 +187,7 @@ services:
   airflow-worker:
     build:
       context: ./
-      dockerfile: airflow-worker/Dockerfile
+      dockerfile: docker/airflow-worker/Dockerfile
     # image: airflow-worker
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
@@ -201,15 +201,15 @@ services:
       - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
     volumes:
       - ./src/airflow_dags:/opt/bitnami/airflow/dags
-      - ./src/jupyter/apps:/opt/bitnami/spark/apps
-      - ./src/jupyter/scripts:/opt/bitnami/python/scripts
+      - ./src/ad-hoc/apps:/opt/bitnami/spark/apps
+      - ./src/ad-hoc/scripts:/opt/bitnami/python/scripts
       # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     networks:
       - my_persistent_network 
   airflow:
     build:
       context: ./
-      dockerfile: airflow/Dockerfile
+      dockerfile: docker/airflow/Dockerfile
     # image: airflow
     environment:
       - AIRFLOW_DATABASE_NAME=bitnami_airflow
@@ -230,9 +230,79 @@ services:
       # - ./src/jupyter/scripts:/opt/bitnami/python/scripts
       # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
     ports:
-      - '8080:8080' 
+      - '9080:8080' 
     networks:
       - my_persistent_network 
+  trino-coordinator:
+    image: 'trinodb/trino:latest'
+    hostname: trino-coordinator
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./etc:/etc/trino
+    networks:
+      - my_persistent_network
+  superset:
+    build: 
+      context: ./
+      dockerfile: docker/superset/Dockerfile
+    container_name: superset
+    ports:
+      - '9088:8088'
+    environment:
+      - SUPERSET_SECRET_KEY=supersecret
+    volumes:
+      - ./superset_init.sh:/app/superset_init.sh
+      - ./data/superset:/app/superset_home
+    networks:
+      - my_persistent_network
+  
+  metastore_db:
+    image: postgres:11
+    hostname: metastore_db
+    environment:
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+      POSTGRES_DB: metastore
+    volumes:
+      - ./data/hive_metastore:/var/lib/postgresql/data
+    networks:
+      - my_persistent_network
+
+  hive-metastore:
+    hostname: hive-metastore
+    image: 'starburstdata/hive:3.1.2-e.18'
+    ports:
+      - '9083:9083' # Metastore Thrift
+    environment:
+      HIVE_METASTORE_DRIVER: org.postgresql.Driver
+      HIVE_METASTORE_JDBC_URL: jdbc:postgresql://metastore_db:5432/metastore
+      HIVE_METASTORE_USER: hive
+      HIVE_METASTORE_PASSWORD: hive
+      HIVE_METASTORE_WAREHOUSE_DIR: s3://datalake/
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: minio123
+      S3_PATH_STYLE_ACCESS: "true"
+      REGION: ""
+      GOOGLE_CLOUD_KEY_FILE_PATH: ""
+      AZURE_ADL_CLIENT_ID: ""
+      AZURE_ADL_CREDENTIAL: ""
+      AZURE_ADL_REFRESH_URL: ""
+      AZURE_ABFS_STORAGE_ACCOUNT: "$data_lake_account_name"
+      AZURE_ABFS_ACCESS_KEY: "$data_lake_access_key"
+      AZURE_WASB_STORAGE_ACCOUNT: ""
+      AZURE_ABFS_OAUTH: ""
+      AZURE_ABFS_OAUTH_TOKEN_PROVIDER: ""
+      AZURE_ABFS_OAUTH_CLIENT_ID: ""
+      AZURE_ABFS_OAUTH_SECRET: ""
+      AZURE_ABFS_OAUTH_ENDPOINT: ""
+      AZURE_WASB_ACCESS_KEY: ""
+      HIVE_METASTORE_USERS_IN_ADMIN_ROLE: "admin"
+    networks:
+      - my_persistent_network
+    depends_on:
+      - metastore_db
 
 #   # configuration manager for NiFi
 #   zookeeper:

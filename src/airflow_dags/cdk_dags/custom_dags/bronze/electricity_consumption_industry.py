@@ -18,7 +18,7 @@ from datetime import datetime
 log = logging.getLogger(__name__)
 
 spark_conf = {
-    "spark.jars.packages": 'org.apache.hudi:hudi-spark3.3-bundle_2.12:0.13.1,org.apache.hadoop:hadoop-azure:3.3.3'
+    "spark.jars.packages": "org.apache.hudi:hudi-spark3.3-bundle_2.12:0.13.1,org.apache.hadoop:hadoop-azure:3.3.3,io.delta:delta-core_2.12:2.3.0"
 }
 
 landing_dataset = Dataset(Path(__file__).stem)
@@ -31,7 +31,7 @@ with DAG("landing_electricity_consumption_industry",start_date=datetime(2023,5,2
 
     api_to_landing = SparkSubmitOperator(
         task_id = "api_to_landing",
-        application = "/opt/bitnami/spark/apps/bronze/electricity_consumption_industry.py",
+        application = "/opt/bitnami/spark/apps/bronze/electricity_consumption_industry_delta.py",
         conn_id = "spark_conn",
         verbose = True,
         outlets = [landing_dataset],

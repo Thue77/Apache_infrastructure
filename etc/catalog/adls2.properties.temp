@@ -1,0 +1,5 @@
+connector.name=hive
+hive.metastore.uri=thrift://hive-metastore:9083
+hive.azure.abfs-storage-account=${data_lake_account_name}
+hive.azure.abfs-access-key=${data_lake_access_key}
+hive.storage-format=parquet
