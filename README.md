@@ -5,6 +5,10 @@ The tech stack looks as follows:
 -----
 ![Image](./res/architecture.drawio.png)
 
+Docker overview
+---
+
+![Image](./res/docker_containers.drawio.png)
 
 ## Getting started
 - The project may be started by first running `build.ps1` to build all custom images. 
