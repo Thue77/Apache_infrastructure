@@ -253,7 +253,7 @@ services:
       - SUPERSET_SECRET_KEY=supersecret
     volumes:
       - ./superset_init.sh:/app/superset_init.sh
-      - ./data/superset:/app/superset_home
+      # - ./data/superset:/app/superset_home # After container is up and running: uncomment to persist superset data
     networks:
       - my_persistent_network
   
