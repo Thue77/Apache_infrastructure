@@ -9,8 +9,7 @@ tasks:
   #   command: bash build.sh
 
   - name: run docker images
-    init: bash docker/build.sh
-    command: docker-compose up -d
+    command: bash gitpod_setup.sh
 
 ports:
   - name: airflow

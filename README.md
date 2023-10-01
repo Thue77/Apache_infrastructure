@@ -9,7 +9,6 @@ The tech stack looks as follows:
 ## Getting started
 - The project may be started by first running `build.ps1` to build all custom images. 
 - Git repo should be initialized in [/src/nifi/](/src/nifi/) in order to use the Nifi registry. 
-- 
 - Add necessary secrets to environment variables. The below steps indicate one way to do so
   - The [.env.temp](.env.temp) shows which secrets are necessary and a new filew `.env` should be created with the values populated
   - Run [dot_env_to_env_vars.ps1](./dot_env_to_env_vars.ps1) to add values from the newly created `.env` file to the environment variables
@@ -27,7 +26,9 @@ To access Azurite, the uri `http://azurite:10000/devstoreaccount1` should be use
 Hudi is not added beforehand, but is downloaded as part of the initiation of the sparkSession in [hudi_test](/src/jupyter/hudi_test.ipynb)
 
 ### Apache Superset
-When connecting Trino to Superset use the following url for local docker instances trino://trino@host.docker.internal:8080/<name of catalog>
+When connecting Trino to Superset use the following url for local docker instances trino://trino@host.docker.internal:8080/<name of catalog>. If running from something like gitpod the uri should be trino://trino@trino-coordinator:8080/<name of catalog>
+
+
 
 ### Apache Airflow
 When the container is created a connection called "spark_conn" should be created and it should contain information on the jars to be installed. Below is an example:
