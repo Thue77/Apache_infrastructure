@@ -1,5 +1,9 @@
-# Apache_infrastructure
+# Open Data Lake Infrastructure
 Project to define an open source development environment for Data Lake projects. The project is only intened to be used for experimenting with Data Lake infrastructures based on Apache technologies. No security is implemented.
+
+The tech stack looks as follows:
+
+![Image](./res/architecture.drawio.png)
 
 ## Getting started
 - The project may be started by first running `build.ps1` to build all custom images. 
