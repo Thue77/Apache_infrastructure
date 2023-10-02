@@ -4,8 +4,8 @@ from pathlib import Path
 
 from cdk.services.api.energi_data_service import EnergiDataService
 from cdk.common_modules.access.secrets import Secrets
-from cdk.common_modules.utility.spark_config import SparkConfig
-from cdk.common_modules.utility.spark_session_builder import SparkSessionBuilder
+from cdk.common_modules.spark.spark_config import SparkConfig
+from cdk.common_modules.spark.spark_session_builder import SparkSessionBuilder
 from cdk.common_modules.delta_stores.delta_state import DeltaState
 from cdk.common_modules.utility.logging import Logger
 

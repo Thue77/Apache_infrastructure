@@ -9,24 +9,19 @@ tasks:
   #   command: bash build.sh
 
   - name: run docker images
-    init: bash build.sh
-    command: docker-compose up -d
+    command: bash gitpod_setup.sh
 
 ports:
   - name: airflow
     port: 8080
     visibility: private
 
-  - name: nifi
-    port: 8091
-    visibility: private
-
   - name: spark-master
     port: 8089
     visibility: private
 
-  - name: namenode
-    port: 9870
+  - name: trino
+    port: 8080
     visibility: private
 
 

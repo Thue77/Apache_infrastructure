@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  SubnetID:
+    Type: String
+  SubnetID2:
+    Type: String
+  FileSharePort:
+    Type: Number
+    Description: Port to use for accessing the FileSystem via a Mount Target
+    Default: 2049 # NFS Default Port Number
+    MinValue: 1024
+    MaxValue: 65535
+  VpcID:
+    Type: String
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: mage-data-preparation
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/mage-data-preparation
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: mage-data-preparation
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: MageContainerSecurityGroup
+      GroupDescription: Security group for Mage server
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6789
+          ToPort: 6789
+          CidrIp: 0.0.0.0/0
+
+  # Elastic file system
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      Encrypted: true
+      FileSystemTags:
+        - Key: Name
+          Value: mage-data-preparation
+      KmsKeyId: !Ref "AWS::NoValue"
+      PerformanceMode: generalPurpose
+      ThroughputMode: bursting
+      ProvisionedThroughputInMibps: !Ref 'AWS::NoValue'
+  MountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !GetAtt FileSystem.FileSystemId
+      SubnetId: !Ref SubnetID
+      SecurityGroups:
+        - !GetAtt MountTargetSecurityGroup.GroupId
+  MountTargetSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: FileSystem Security Group
+      GroupName: MageEFSSecurityGroup
+      SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          FromPort: !Ref FileSharePort
+          ToPort: !Ref FileSharePort
+          SourceSecurityGroupId: !GetAtt ContainerSecurityGroup.GroupId
+
+  # Load balancer
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the public facing load balancer
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: mage-data-preparation
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: "30"
+      Subnets:
+        - !Ref SubnetID
+        - !Ref SubnetID2
+      SecurityGroups:
+        - !GetAtt LoadBalancerSecurityGroup.GroupId
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VpcID
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /api/kernels
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 6789
+      Protocol: HTTP
+      TargetType: ip
+      UnhealthyThresholdCount: 2
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  # ECS task definition and service
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: mage-data-preparation
+      Cpu: 512
+      Memory: 1024
+      NetworkMode: awsvpc
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: mage-data-preparation
+          Image: mageai/mageai:latest
+          MountPoints:
+            - ReadOnly: false
+              ContainerPath: /home/src
+              SourceVolume: mage-data-preparation
+          PortMappings:
+            - ContainerPort: 6789
+          PseudoTerminal: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroup
+              awslogs-stream-prefix: ecs
+      RequiresCompatibilities:
+        - EC2
+        - FARGATE
+      Volumes:
+        - Name: mage-data-preparation
+          EfsVolumeConfiguration:
+            FileSystemId: !GetAtt FileSystem.FileSystemId
+            TransitEncryption: "ENABLED"
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - LoadBalancerListener
+    Properties:
+      ServiceName: mage-data-preparation
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      LoadBalancers:
+        - TargetGroupArn: !Ref TargetGroup
+          ContainerName: mage-data-preparation
+          ContainerPort: 6789
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetID
+          SecurityGroups:
+            - !GetAtt ContainerSecurityGroup.GroupId
