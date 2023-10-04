@@ -1,0 +1,24 @@
+source:
+  type: trino
+  config:
+    # Coordinates
+    host_port: localhost:8084
+    database: delta
+
+    # Credentials
+    username: root
+    password: 
+
+    schema_pattern:
+      allow: 
+        - "bronze.*"
+    profiling:
+      enabled: True
+
+    # If you need to connect to Trino over http and not https, uncomment this section.
+    # options:
+    #   connect_args:
+    #     http_scheme: http
+
+# sink:
+  # sink configs

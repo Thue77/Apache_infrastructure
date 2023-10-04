@@ -20,19 +20,19 @@ Docker overview
 - Spin up all services with Docker-Compose.
 - To configure Apache Superset the first time execute [superset_init.sh](./superset_init.sh) from within the container
 
-### Nifi Settings
-To connect Nifi to the registry and use the code for [Nifi](/src/nifi/) add the registry with the uri `http://myregistry:18080`. Note that [/src/nifi/](/src/nifi/) must be a git repo to use the Nifi registry.
-Nifi writes to the folder `/user/nifi` in HDFS.
-
-To access Azurite, the uri `http://azurite:10000/devstoreaccount1` should be used for the controller `AzureStorageEmulatorCredentialsControllerService`
+### Datahub
+- If containers are to be recreated, it is important to delete the associated managed volumes first in order to avoid a conflict in cluster id
+- To ingest data from Trino with [trino-delta.yaml](./scripts/datahub/trino-delta.yaml) run `datahub ingest -c .\trino-delta.yaml`
+  - To install the Datahub CLI, simply run 
+    - `python -m pip install --upgrade pip wheel setuptools`
+    - `python -m pip install --upgrade acryl-datahub`
+    - `python -m pip install 'acryl-datahub[trino]'`
 
 ### Apache Hudi
 Hudi is not added beforehand, but is downloaded as part of the initiation of the sparkSession in [hudi_test](/src/jupyter/hudi_test.ipynb)
 
 ### Apache Superset
 When connecting Trino to Superset use the following url for local docker instances trino://trino@host.docker.internal:8080/<name of catalog>. If running from something like gitpod the uri should be trino://trino@trino-coordinator:8080/<name of catalog>
-
-
 
 ### Apache Airflow
 When the container is created a connection called "spark_conn" should be created and it should contain information on the jars to be installed. Below is an example:
