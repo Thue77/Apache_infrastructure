@@ -1,392 +1,167 @@
 version: "3.6"
 volumes:
-#   shared-workspace:
-#     name:  "notebooks" #"hadoop-distributed-file-system"
-#     driver: local
-  hdfs-config:
-  # name-storage:
+  broker: null
+  esdata: null
+  mysqldata: null
+  zkdata: null
 services:
-  # namenode:
-  #   image: apache/hadoop:3
-  #   hostname: namenode
-  #   command: ["hdfs", "namenode"]
-  #   ports:
-  #     - 9870:9870
-  #     - 9010:9000
-  #   environment:
-  #     - CLUSTER_NAME=test
-  #     # - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-  #     - "ENSURE_NAMENODE_DIR=/tmp/hadoop-hadoop/dfs/name"
-  #   volumes:
-  #     - hdfs-config:/opt/hadoop/etc/hadoop
-  #   env_file:
-  #     - ./hadoop.env
-  #   networks:
-  #     - my_persistent_network
-  # datanode:
-  #   image: apache/hadoop:3
-  #   command: ["hdfs", "datanode"]
-  #   environment:
-  #     SERVICE_PRECONDITION: "namenode:9870"
-  #     ENSURE_DATANODE_DIR: "/tmp/hadoop-root/dfs/data"
-  #     # CORE_CONF_fs_defaultFS: hdfs://namenode:9000
-  #   # volumes:
-  #   #   - ./data/datanode:/tmp/hadoop-hadoop/dfs/data
-  #   ports:
-  #     - "9864:9864"
-  #   env_file:
-  #     - ./hadoop.env
-  #   depends_on:
-  #     - namenode
-  #   networks:
-  #     - my_persistent_network    
-  # resourcemanager:
-  #   image: apache/hadoop:3
-  #   hostname: resourcemanager
-  #   command: ["yarn", "resourcemanager"]
-  #   ports:
-  #     - 8088:8088
-  #   environment:
-  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
-  #   env_file:
-  #     - ./hadoop.env
-  #   networks:
-  #     - my_persistent_network
-  # nodemanager:
-  #   image: apache/hadoop:3
-  #   command: ["yarn", "nodemanager"]
-  #   environment:
-  #     SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
-  #   networks:
-  #     - my_persistent_network
-
+# Processing
   ad-hoc:
-    build:
-      context: ./
-      dockerfile: docker/ad-hoc/Dockerfile
-    # image: jupyterlab
-    container_name: ad-hoc
-    ports:
-      - 8888:8888
-    environment:
-      - PYTHONPATH=/opt/workspace/apps:/opt/workspace/scripts:/opt/workspace/dags
-      - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
-    volumes:
-      - ./src/ad-hoc:/opt/workspace
-      - ./src/airflow_dags:/opt/workspace/dags
-      - ./settings/jupyter:/root/.vscode-server
+    extends:
+      file: docker-compose-processing.yaml
+      service: ad-hoc
     networks:
-      - my_persistent_network 
-    depends_on:
-      - spark-master
+    - my_persistent_network 
   spark-master:
-    build:
-      context: ./
-      dockerfile: docker/spark-master/Dockerfile
-    # image: spark-master
-    container_name: spark-master
-    environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-    ports:
-      - 8089:8080
-      - 7077:7077
-    # volumes:
-    #   - shared-workspace:/opt/workspace
-    # depends_on:
-    #   - namenode
-    #   - datanode
+    extends:
+      file: docker-compose-processing.yaml
+      service: spark-master
     networks:
-      - my_persistent_network  
+    - my_persistent_network  
   spark-worker-1:
-    build:
-      context: ./
-      dockerfile: docker/spark-worker/Dockerfile
-    # image: spark-worker
-    container_name: spark-worker-1
-    environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-      - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=512m
-    ports:
-      - 8081:8081
-    # volumes:
-    #   - shared-workspace:/opt/workspace
-    depends_on:
-      - spark-master
+    extends:
+      file: docker-compose-processing.yaml
+      service: spark-worker-1
     networks:
-      - my_persistent_network  
-  # spark-worker-2:
-  #   build:
-  #     context: ./
-  #     dockerfile: spark-worker/Dockerfile
-  #   # image: spark-worker
-  #   container_name: spark-worker-2
-  #   environment:
-  #     - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-  #     - SPARK_WORKER_CORES=1
-  #     - SPARK_WORKER_MEMORY=512m
-  #   ports:
-  #     - 8082:8081
-  #   # volumes:
-  #   #   - shared-workspace:/opt/workspace
-  #   depends_on:
-  #     - spark-master
-  #   networks:
-  #     - my_persistent_network  
+    - my_persistent_network 
 
   postgresql:
-    # image: docker.io/bitnami/postgresql:15
-    build:
-      context: ./
-      dockerfile: docker/postgresql/Dockerfile
-    volumes:
-      - ./data/postgresql_data:/bitnami/postgresql/data
-    environment:
-      - POSTGRESQL_DATABASE=bitnami_airflow
-      - POSTGRESQL_USERNAME=bn_airflow
-      - POSTGRESQL_PASSWORD=bitnami1
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - '5432:5432'
+    extends:
+      file: docker-compose-processing.yaml
+      service: postgresql
     networks:
-      - my_persistent_network 
+    - my_persistent_network 
   redis:
-    # image: docker.io/bitnami/redis:7.0
-    build:
-      context: ./
-      dockerfile: docker/redis/Dockerfile
-    volumes:
-      - './data/redis_data:/bitnami'
-    environment:
-      # ALLOW_EMPTY_PASSWORD is recommended only for development.
-      - ALLOW_EMPTY_PASSWORD=yes
+    extends:
+      file: docker-compose-processing.yaml
+      service: redis
     networks:
-      - my_persistent_network 
+    - my_persistent_network 
   airflow-scheduler:
-    build:
-      context: ./
-      dockerfile: docker/airflow-scheduler/Dockerfile
-    # image: airflow-scheduler
-    environment:
-      - AIRFLOW_DATABASE_NAME=bitnami_airflow
-      - AIRFLOW_DATABASE_USERNAME=bn_airflow
-      - AIRFLOW_DATABASE_PASSWORD=bitnami1
-      - AIRFLOW_EXECUTOR=CeleryExecutor
-      - AIRFLOW_WEBSERVER_HOST=airflow
-      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
-      - AIRFLOW_LOAD_EXAMPLES=no
-      # - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
-    volumes:
-      - ./src/airflow_dags:/opt/bitnami/airflow/dags
-      - ./src/jupyter/apps:/opt/bitnami/spark/apps
-      # - ./src/jupyter/scripts:/opt/bitnami/python/scripts
-      # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
+    extends:
+      file: docker-compose-processing.yaml
+      service: airflow-scheduler
     networks:
-      - my_persistent_network 
+    - my_persistent_network 
   airflow-worker:
-    build:
-      context: ./
-      dockerfile: docker/airflow-worker/Dockerfile
-    # image: airflow-worker
-    environment:
-      - AIRFLOW_DATABASE_NAME=bitnami_airflow
-      - AIRFLOW_DATABASE_USERNAME=bn_airflow
-      - AIRFLOW_DATABASE_PASSWORD=bitnami1
-      - AIRFLOW_EXECUTOR=CeleryExecutor
-      - AIRFLOW_WEBSERVER_HOST=airflow
-      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
-      - AIRFLOW_LOAD_EXAMPLES=no
-      - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
-      - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
-    volumes:
-      - ./src/airflow_dags:/opt/bitnami/airflow/dags
-      - ./src/ad-hoc/apps:/opt/bitnami/spark/apps
-      - ./src/ad-hoc/scripts:/opt/bitnami/python/scripts
-      # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
+    extends:
+      file: docker-compose-processing.yaml
+      service: airflow-worker
     networks:
-      - my_persistent_network 
+    - my_persistent_network  
   airflow:
-    build:
-      context: ./
-      dockerfile: docker/airflow/Dockerfile
-    # image: airflow
-    environment:
-      - AIRFLOW_DATABASE_NAME=bitnami_airflow
-      - AIRFLOW_DATABASE_USERNAME=bn_airflow
-      - AIRFLOW_DATABASE_PASSWORD=bitnami1
-      - AIRFLOW_EXECUTOR=CeleryExecutor
-      - AIRFLOW_PASSWORD=bitnami
-      - AIRFLOW_USERNAME=user
-      - AIRFLOW_EMAIL=user@example.com
-      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow
-      - AIRFLOW_LOAD_EXAMPLES=no
-      # - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
-      # - AIRFLOW_HOME=/opt/bitnami/airflow
-    volumes:
-      - ./src/airflow_dags:/opt/bitnami/airflow/dags
-      - ./settings/airflow:/.vscode-server
-      # - ./src/jupyter/apps:/opt/bitnami/spark/apps
-      # - ./src/jupyter/scripts:/opt/bitnami/python/scripts
-      # - ./dependencies/requirements.txt:/bitnami/python/requirements.txt
-    ports:
-      - '9080:8080' 
+    extends:
+      file: docker-compose-processing.yaml
+      service: airflow
     networks:
-      - my_persistent_network 
-  trino-coordinator:
-    image: 'trinodb/trino:latest'
-    hostname: trino-coordinator
-    ports:
-      - '8080:8080'
-    volumes:
-      - ./etc:/etc/trino
-    networks:
-      - my_persistent_network
-  superset:
-    build: 
-      context: ./
-      dockerfile: docker/superset/Dockerfile
-    container_name: superset
-    ports:
-      - '9088:8088'
-    environment:
-      - SUPERSET_SECRET_KEY=supersecret
-    volumes:
-      - ./superset_init.sh:/app/superset_init.sh
-      # - ./data/superset:/app/superset_home # After container is up and running: uncomment to persist superset data
-    networks:
-      - my_persistent_network
+    - my_persistent_network 
   
-  metastore_db:
-    image: postgres:11
-    hostname: metastore_db
-    environment:
-      POSTGRES_USER: hive
-      POSTGRES_PASSWORD: hive
-      POSTGRES_DB: metastore
-    volumes:
-      - ./data/hive_metastore:/var/lib/postgresql/data
+
+# Analytics
+  trino-coordinator:
+    extends:
+      file: docker-compose-analytics.yaml
+      service: trino-coordinator
     networks:
-      - my_persistent_network
+    - my_persistent_network  
+
+  superset:
+    extends:
+      file: docker-compose-analytics.yaml
+      service: superset
+    networks:
+    - my_persistent_network  
+
+  metastore_db:
+    extends:
+      file: docker-compose-analytics.yaml
+      service: metastore_db
+    networks:
+    - my_persistent_network  
 
   hive-metastore:
-    hostname: hive-metastore
-    image: 'starburstdata/hive:3.1.2-e.18'
-    ports:
-      - '9083:9083' # Metastore Thrift
-    environment:
-      HIVE_METASTORE_DRIVER: org.postgresql.Driver
-      HIVE_METASTORE_JDBC_URL: jdbc:postgresql://metastore_db:5432/metastore
-      HIVE_METASTORE_USER: hive
-      HIVE_METASTORE_PASSWORD: hive
-      HIVE_METASTORE_WAREHOUSE_DIR: s3://datalake/
-      S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: minio
-      S3_SECRET_KEY: minio123
-      S3_PATH_STYLE_ACCESS: "true"
-      REGION: ""
-      GOOGLE_CLOUD_KEY_FILE_PATH: ""
-      AZURE_ADL_CLIENT_ID: ""
-      AZURE_ADL_CREDENTIAL: ""
-      AZURE_ADL_REFRESH_URL: ""
-      AZURE_ABFS_STORAGE_ACCOUNT: "$data_lake_account_name"
-      AZURE_ABFS_ACCESS_KEY: "$data_lake_access_key"
-      AZURE_WASB_STORAGE_ACCOUNT: ""
-      AZURE_ABFS_OAUTH: ""
-      AZURE_ABFS_OAUTH_TOKEN_PROVIDER: ""
-      AZURE_ABFS_OAUTH_CLIENT_ID: ""
-      AZURE_ABFS_OAUTH_SECRET: ""
-      AZURE_ABFS_OAUTH_ENDPOINT: ""
-      AZURE_WASB_ACCESS_KEY: ""
-      HIVE_METASTORE_USERS_IN_ADMIN_ROLE: "admin"
+    extends:
+      file: docker-compose-analytics.yaml
+      service: hive-metastore
     networks:
-      - my_persistent_network
-    depends_on:
-      - metastore_db
+    - my_persistent_network  
+  
 
-#   # configuration manager for NiFi
-#   zookeeper:
-#     hostname: zookeeper
-#     container_name: zookeeper_container
-#     image: 'bitnami/zookeeper:3.9.0'  # latest image as of 2021-11-09.
-#     restart: on-failure
-#     environment:
-#         - ALLOW_ANONYMOUS_LOGIN=yes
-#     networks:
-#         - my_persistent_network
-# # version control for nifi flows
-#   registry:
-#     hostname: myregistry
-#     container_name: registry_container_persistent
-#     image: 'apache/nifi-registry:1.23.2'
-#     restart: on-failure
-#     ports:
-#         - "18080:18080"
-#     environment:
-#         - LOG_LEVEL=INFO
-#         - NIFI_REGISTRY_DB_DIR=/opt/nifi-registry/nifi-registry-current/database
-#         - NIFI_REGISTRY_FLOW_PROVIDER=git #file
-#         - NIFI_REGISTRY_FLOW_STORAGE_DIR=/usr/src #/opt/nifi-registry/nifi-registry-current/flow_storage
-#     volumes:
-#         # - ./nifi_registry/database:/opt/nifi-registry/nifi-registry-current/database
-#         # - ./nifi_registry/flow_storage:/opt/nifi-registry/nifi-registry-current/flow_storage
-#         - ./src/nifi_ingest:/usr/src
-#         # uncomment the next line after copying the /conf directory from the container to your local directory to persist NiFi flows
-#         # Run docker cp <Container ID>:/opt/nifi-registry/nifi-registry-current/conf ./nifi_registry/
-#         # - ./providers.xml:/opt/nifi-registry/nifi-registry-current/conf/providers.xml
-#     networks:
-#         - my_persistent_network
-# # data extraction, transformation and load service
-#   nifi:
-#     hostname: nifi
-#     container_name: nifi_container
-#     image: 'apache/nifi:1.23.2' 
-#     restart: on-failure
-#     ports:
-#         - '8091:8080'
-#     environment:
-#         - NIFI_WEB_HTTP_PORT=8080
-#         - NIFI_CLUSTER_IS_NODE=true
-#         - NIFI_CLUSTER_NODE_PROTOCOL_PORT=8082
-#         - NIFI_ZK_CONNECT_STRING=zookeeper:2181
-#         - NIFI_ELECTION_MAX_WAIT=30 sec
-#         - NIFI_SENSITIVE_PROPS_KEY='12345678901234567890A'
-#     healthcheck:
-#         test: "${DOCKER_HEALTHCHECK_TEST:-curl localhost:8091/nifi/}"
-#         interval: "60s"
-#         timeout: "3s"
-#         start_period: "5s"
-#         retries: 5
-#     volumes:
-#         # - ./nifi/database_repository:/opt/nifi/nifi-current/database_repository
-#         # - ./nifi/flowfile_repository:/opt/nifi/nifi-current/flowfile_repository
-#         # - ./nifi/content_repository:/opt/nifi/nifi-current/content_repository
-#         # - ./nifi/provenance_repository:/opt/nifi/nifi-current/provenance_repository
-#         # - ./nifi/state:/opt/nifi/nifi-current/state
-#         # - ./nifi/logs:/opt/nifi/nifi-current/logs
-#         - ./data/in:/opt/nifi/datatest/in
-#         - ./data/out:/opt/nifi/datatest/out
-#         - hdfs-config:/opt/hadoop/etc/hadoop
-#         # uncomment the next line after copying the /conf directory from the container to your local directory to persist NiFi flows
-#         # docker cp <Container ID>:/opt/nifi/nifi-current/conf ./nifi/
-#         # - ./nifi/conf:/opt/nifi/nifi-current/conf
-#     networks:
-#         - my_persistent_network
-#     depends_on:
-#         - zookeeper
-#         - registry
-#         - namenode
-#   azurite:
-#     image: mcr.microsoft.com/azure-storage/azurite
-#     command: "azurite --loose --blobHost 0.0.0.0 --blobPort 10000 --queueHost 0.0.0.0 --queuePort 10001 --location /workspace --debug /workspace/debug.log"
-#     ports:
-#       - 10000:10000
-#       - 10001:10001
-#       - 10002:10002
-#     volumes:
-#       - ./azurite:/workspace
-#     networks:
-#       - my_persistent_network
+# Datahub
+  datahub-actions:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: datahub-actions
+    networks:
+    - my_persistent_network
+  datahub-frontend-react:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: datahub-frontend-react
+    networks:
+    - my_persistent_network
+  datahub-gms:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: datahub-gms
+    networks:
+    - my_persistent_network
+  datahub-upgrade:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: datahub-upgrade
+    networks:
+    - my_persistent_network
+  elasticsearch:  
+    extends:
+      file: docker-compose-datahub.yaml
+      service: elasticsearch
+    networks:
+    - my_persistent_network
+  elasticsearch-setup:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: elasticsearch-setup
+    networks:
+    - my_persistent_network
+  kafka-setup:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: kafka-setup
+    networks:
+    - my_persistent_network
+  mysql:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: mysql
+    networks:
+    - my_persistent_network
+  mysql-setup:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: mysql-setup
+    networks:
+    - my_persistent_network
+  schema-registry:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: schema-registry
+    networks:
+    - my_persistent_network
+  zookeeper:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: zookeeper
+    networks:
+    - my_persistent_network
+  zookeeper-setup:
+    extends:
+      file: docker-compose-datahub.yaml
+      service: zookeeper-setup
+    networks:
+    - my_persistent_network
+  
+
 networks:
   my_persistent_network:
     driver: bridge
