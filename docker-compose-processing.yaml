@@ -14,6 +14,7 @@ services:
     environment:
       - PYTHONPATH=/opt/workspace/apps:/opt/workspace/scripts:/opt/workspace/dags
       - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
+      - el_overblik_api_token=$el_overblik_api_token
     volumes:
       - ./src/ad-hoc:/opt/workspace
       - ./src/airflow_dags:/opt/workspace/dags
@@ -119,6 +120,7 @@ services:
       - AIRFLOW_LOAD_EXAMPLES=no
       - PYTHONPATH=/opt/bitnami/airflow/dags:/opt/bitnami/airflow/plugins:/opt/bitnami/python/scripts
       - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
+      - el_overblik_api_token=$el_overblik_api_token
     volumes:
       - ./src/airflow_dags:/opt/bitnami/airflow/dags
       - ./src/ad-hoc/apps:/opt/bitnami/spark/apps
