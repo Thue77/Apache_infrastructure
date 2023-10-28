@@ -9,7 +9,6 @@ class StateConnector(Protocol):
     Args:
         from_dataset_name (str): Name of the source dataset
         to_dataset_name (str): Name of the dataset related to the delta state is located
-        group_name (str): Name of the folder in which the dataset related to the delta state is located
         to_layer (str): Name of the layer in which the dataset related to the delta state is located
         spark (SparkSession): SparkSession - Must be configured with the correct storage account access
         delta_entity_name (str): Name of the entity
@@ -17,17 +16,15 @@ class StateConnector(Protocol):
     '''
     from_dataset_name: str
     to_dataset_name: str
-    group_name: str
     to_layer: str
     spark: SparkSession
     delta_entity_name: str
     delta_path: str
 
 
-class HudiStore:
+class HudiDateStore:
     '''
-    Class to keep track of the delta states of the system. Mainly used to keep track of
-    what data has been ingested into the lakehouse.
+    Class to keep track of the delta states of the system. The state is a datetime object. The state is stored in a hudi table.
 
     Args:
         spark (SparkSession): SparkSession - Must be configured with the correct storage account access
@@ -41,7 +38,7 @@ class HudiStore:
         self.to_dataset_name = state_connector.to_dataset_name
         self.to_layer = state_connector.to_layer
         self.delta_table_name = state_connector.delta_entity_name
-        self.delta_path = state_connector.delta_path + '/' + self.delta_table_name #f"abfss://{self.delta_container_name}@{storage_account_name}.dfs.core.windows.net/delta/{self.delta_table_name}"
+        self.delta_path = state_connector.delta_path + '/' + self.delta_table_name 
         self.hudi_options = {
                             'hoodie.table.name': self.delta_table_name,
                             'hoodie.datasource.write.keygenerator.class': 'org.apache.hudi.keygen.ComplexKeyGenerator',
