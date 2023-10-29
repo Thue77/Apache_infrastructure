@@ -43,11 +43,12 @@ class ElOverblik:
     def __init__(self, secret_store: SecretStore):
         self.url = f"https://api.eloverblik.dk/customerapi"
         self.secret_store = secret_store
-        self.api_data_token = self.__get_data_token()
-        self.metering_points = self.__get_metering_points()
+        # self.api_data_token = self.__get_data_token()
+        # self.metering_points = self.__get_metering_points()
 
+    @property
     @my_logging.module_logger
-    def __get_data_token(self):
+    def api_data_token(self):
         '''
         Gets data token from ElOverblik API. The data token is used to authenticate requests to the API. The data token is valid for 24 hours.
         '''
@@ -60,9 +61,10 @@ class ElOverblik:
         response = requests.get(self.url + api_endpoint, headers=headers)
         return response.json()["result"]
     
-    @retry(retry_on_exception=retry_error, stop_max_attempt_number=3, wait_exponential_multiplier=6000, wait_exponential_max=300000)
+    @property
+    # @retry(retry_on_exception=retry_error, stop_max_attempt_number=3, wait_exponential_multiplier=6000, wait_exponential_max=300000)
     @my_logging.module_logger
-    def __get_metering_points(self):
+    def metering_points(self):
         '''
         Get metering points from ElOverblik
         '''
@@ -79,7 +81,7 @@ class ElOverblik:
         logger.info(f"Found {len(metering_points)} metering points")
         return metering_points
     
-    @retry(retry_on_exception=retry_error, stop_max_attempt_number=3, wait_exponential_multiplier=6000, wait_exponential_max=300000)
+    # @retry(retry_on_exception=retry_error, stop_max_attempt_number=3, wait_exponential_multiplier=6000, wait_exponential_max=300000)
     @my_logging.module_logger
     def get_timeseries_data(self, start: datetime.datetime, end: datetime.datetime, aggregate="Actual"):
         '''
@@ -112,7 +114,7 @@ class ElOverblik:
             raise ElOverblikException(f"Error getting time series data. Status code: {response.status_code}")
         return response.json()
     
-    @retry(retry_on_exception=retry_error, stop_max_attempt_number=3, wait_exponential_multiplier=6000, wait_exponential_max=300000)
+    # @retry(retry_on_exception=retry_error, stop_max_attempt_number=3, wait_exponential_multiplier=6000, wait_exponential_max=300000)
     @my_logging.module_logger
     def get_metering_points_details(self):
         '''
