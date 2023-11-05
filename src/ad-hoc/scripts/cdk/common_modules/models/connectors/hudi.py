@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-import pyspark.sql.functions as F
+import datetime
 from typing import Protocol,List
 from dataclasses import dataclass
 
@@ -11,7 +11,6 @@ class HudiConnector():
     Args:
         from_dataset_name (str): Name of the source dataset
         to_dataset_name (str): Name of the dataset related to the delta state is located
-        group_name (str): Name of the folder in which the dataset related to the delta state is located
         to_layer (str): Name of the layer in which the dataset related to the delta state is located
         spark (SparkSession): SparkSession - Must be configured with the correct storage account access
         delta_entity_name (str): Name of the entity
@@ -19,9 +18,9 @@ class HudiConnector():
     '''
     from_dataset_name: str
     to_dataset_name: str
-    group_name: str
     to_layer: str
     spark: SparkSession
     delta_entity_name: str
     delta_path: str
+    default_value: datetime.datetime
     connector_type = 'hudi'

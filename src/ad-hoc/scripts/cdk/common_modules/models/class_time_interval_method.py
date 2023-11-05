@@ -8,13 +8,9 @@ class ClassTimeIntervalMethod(pydantic.BaseModel):
     Interface for object that holds the information needed to execute a class method
 
     Args:
-        from_dataset_name (str): Name of the source dataset
-        to_dataset_name (str): Name of the dataset related to the delta state is located
-        group_name (str): Name of the folder in which the dataset related to the delta state is located
-        to_layer (str): Name of the layer in which the dataset related to the delta state is located
-        spark (SparkSession): SparkSession - Must be configured with the correct storage account access
-        delta_entity_name (str): Name of the entity
-        delta_path (str): Path to the delta table. Varies depending on selection of storage solution
+        class_instance (object): Instance of class that holds the method
+        method_name (str): Name of method
+        method_kwargs (dict): Keyword arguments for method
     '''
     class_instance: object
     method_name: str

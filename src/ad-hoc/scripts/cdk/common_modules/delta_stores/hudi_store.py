@@ -1,6 +1,14 @@
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
+import datetime
+import pathlib
 from typing import Protocol,List
+
+import cdk.common_modules.utility.logging as my_logging
+import logging
+
+# Set logging
+logger = logging.getLogger(pathlib.Path(__file__).stem)
 
 class StateConnector(Protocol):
     '''
@@ -20,17 +28,15 @@ class StateConnector(Protocol):
     spark: SparkSession
     delta_entity_name: str
     delta_path: str
+    default_value: datetime.datetime
 
-
+@my_logging.module_logger
 class HudiDateStore:
     '''
     Class to keep track of the delta states of the system. The state is a datetime object. The state is stored in a hudi table.
 
     Args:
-        spark (SparkSession): SparkSession - Must be configured with the correct storage account access
-        dataset_name (str): Name of the dataset
-        storage_account_name (str): Name of the storage account
-        layer (str): Name of the layer. Example: landing
+        state_connector (StateConnector): Connector object that holds the information needed by Hudistore
     '''
     def __init__(self, state_connector: StateConnector) -> None:
         self.spark = state_connector.spark
@@ -38,6 +44,7 @@ class HudiDateStore:
         self.to_dataset_name = state_connector.to_dataset_name
         self.to_layer = state_connector.to_layer
         self.delta_table_name = state_connector.delta_entity_name
+        self.default_value = state_connector.default_value
         self.delta_path = state_connector.delta_path + '/' + self.delta_table_name 
         self.hudi_options = {
                             'hoodie.table.name': self.delta_table_name,
@@ -52,7 +59,8 @@ class HudiDateStore:
                             'hoodie.insert.shuffle.parallelism': 1
                         }
 
-    def get_delta_state(self, default_value: str) -> str:
+    @my_logging.module_logger
+    def get_delta_state(self) -> datetime.datetime:
         '''
         Get the delta state of the dataset. If a default value is provided, then the default value is returned if the row does not exist.
         '''
@@ -60,18 +68,24 @@ class HudiDateStore:
             delta_state = (
                 self.spark.read.format('hudi').load(self.delta_path)
                     .filter((F.col('ToDatasetName')==self.to_dataset_name) & (F.col('FromDatasetName')==self.from_dataset_name))
-                    .select('DeltaState').collect()[0][0]
+                    .select('DeltaState')#.collect()[0][0]
             )
+            if delta_state.count() == 0:
+                raise Exception('java.io.FileNotFoundException')
+            delta_state = delta_state.collect()[0][0]
+            logger.info(f"Delta state: {delta_state}")
         except Exception as e:
             if 'java.io.FileNotFoundException' in str(e):
                 '''If the row does not exist, then the row is created with the default value and the default value is returned'''
-                delta_state = default_value
+                logger.info(f"Row does not exist. Creating row with default value: {self.default_value}")
+                delta_state = self.default_value
                 self.set_delta_state(delta_state)
             else:
                 raise e
         return delta_state
     
-    def set_delta_state(self, delta_state: str) -> None:
+    @my_logging.module_logger
+    def set_delta_state(self, delta_state: datetime.datetime) -> None:
         '''
         Set the delta state of the dataset
         '''

@@ -88,9 +88,9 @@ class ElOverblik:
         Get time series data from ElOverblik for all available meters
 
         Parameters:
-        start (str): Start date in format "YYYY-MM-DD"
-        end (str): End date in format "YYYY-MM-DD"
-        aggregate (str): Aggregate data by "Quarter", "Hour", "Day", "Month", "Year", or "Actual" (default: "Actual")
+            start (datetime.datetime): Start date for time series data
+            end (datetime.datetime): End date for time series data
+            aggregate (str): Aggregate data by "Quarter", "Hour", "Day", "Month", "Year", or "Actual" (default: "Actual")
         '''
         api_endpoint = '/api/meterdata/gettimeseries'
         params = {

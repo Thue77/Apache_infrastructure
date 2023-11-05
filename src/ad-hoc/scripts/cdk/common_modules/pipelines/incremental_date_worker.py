@@ -1,7 +1,10 @@
-from typing import Protocol, Any
+from typing import Protocol, Any, List
 from retrying import retry
 import datetime
 import pathlib
+
+from cdk.common_modules.models.class_time_interval_method import ClassTimeIntervalMethod
+from cdk.common_modules.models.file import File
 import cdk.common_modules.utility.logging as my_logging
 import logging
 
@@ -23,20 +26,31 @@ class StateStore(Protocol):
         pass
 
 
-class Service(Protocol):
-    def get_data(self, start: datetime.datetime, end: datetime.datetime, **kwargs) -> Any:
+class DataWriter(Protocol):
+    def write_data(self, data: Any, name: str) -> None:
         pass
 
 @my_logging.module_logger
-class IncrementalDateWorker:
+class LandingIncrementalDateWorker:
+    '''
+    Class to perform incremental load to landing zone. 
     
-    def __init__(self, service: Service, service_method: str, service_kwargs: dict, increment: datetime.timedelta, max_state: datetime.datetime, state_store: StateStore) -> None:
+    Args:
+        data_method (ClassTimeIntervalMethod): ClassTimeIntervalMethod object
+        data_writer (DataWriter): DataWriter object
+        increment (datetime.timedelta): Increment to increment the delta state by
+        max_state (datetime.datetime): Max state to increment the delta state to
+        state_store (StateStore): StateStore object
+        file (File): File object
+    '''
+    
+    def __init__(self, data_method: ClassTimeIntervalMethod, data_writer: DataWriter, increment: datetime.timedelta, max_state: datetime.datetime, state_store: StateStore, file: File) -> None:
         self.increment = increment
         self.max_state = max_state
         self.state_store = state_store  
-        self.service = service
-        self.service_method = service_method
-        self.service_kwargs = service_kwargs
+        self.data_method = data_method
+        self.data_writer = data_writer
+        self.file = file
 
     @my_logging.module_logger
     def execute(self):
@@ -44,42 +58,34 @@ class IncrementalDateWorker:
         while True:
             # Get the delta state
             delta_state_value = self.state_store.get_delta_state()
-            logger.appinfo(f"Delta state: {delta_state_value}")
+            logger.info(f"Delta state: {delta_state_value}")
 
             # Increment the delta state by one day
-            end_date = datetime.strptime(delta_state_value, "%Y-%m-%dT%H:%M") + datetime.timedelta(days=1)
+            end_datetime = delta_state_value + self.increment
+
+            # Creating file for current delta state
+            logger.info(f"Creating file for current delta state")
+            original_filename = self.file.name
+            self.file.name += f"_{delta_state_value}_{end_datetime}"
 
             # Get the data
-            logger.info(f"Getting data from {delta_state_value} to {end_date.strftime('%Y-%m-%dT%H:%M')}")
-            get_data = getattr(self.service, self.service_method)
+            logger.info(f"Getting data from {delta_state_value} to {end_datetime}")
+            get_data = getattr(self.data_method.class_instance, self.data_method.method_name)
 
-            data = get_data(delta_state_value, end_date, **self.service_kwargs)
+            data = get_data(delta_state_value, end_datetime, **self.data_method.method_kwargs)
 
-            try:
-                # Load the data into a DataFrame
-                df = spark.createDataFrame(data)
-            except Exception as e:
-                if "empty dataset" in str(e):
-                    logger.appinfo(f"No data found. Should be checked manually that there is no data from {delta_state_value} to {end_date.strftime('%Y-%m-%dT%H:%M')}")
-                    break
-                else:
-                    raise e
-
-            # Log the number of rows written
-            logger.appinfo(f"Number of rows written: {df.count()}")
-
-            # Write the DataFrame to Hudi
-            df.write.format("delta"). \
-                mode("append"). \
-                save(destination_path)
+            # Write data to sink
+            logger.info(f"Writing data to sink")
+            self.data_writer.write_data(data, self.file)
 
             # Update the delta state
-            delta_state.set_delta_state(end_date.strftime("%Y-%m-%dT%H:%M"))
-            # break
+            self.state_store.set_delta_state(end_datetime)
+
+            self.file.name = original_filename
 
             # Break if the end date is greater than or equal to max date
-            if end_date >= max_date:
-                logger.appinfo("End date is greater than or equal to max date")
+            if end_datetime >= self.max_state:
+                logger.info("End date is greater than or equal to max date")
                 break
 
 

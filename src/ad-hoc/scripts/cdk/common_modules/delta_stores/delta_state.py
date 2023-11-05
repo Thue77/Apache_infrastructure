@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
 from typing import Protocol,List
 
-from cdk.common_modules.delta_stores.hudi_store import HudiStore
+from cdk.common_modules.delta_stores.hudi_store import HudiDateStore
 
 class StateConnector(Protocol):
     '''
@@ -43,8 +43,8 @@ class DeltaState:
         if self.state_connector.connector_type == 'hudi':
             return self.__get_hudi_store()
 
-    def __get_hudi_store(self) -> HudiStore:
+    def __get_hudi_store(self) -> HudiDateStore:
         '''
         Get the hudi store object
         '''
-        return HudiStore(self.state_connector)
+        return HudiDateStore(self.state_connector)
