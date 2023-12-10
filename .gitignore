@@ -11,3 +11,4 @@ adls2.properties
 delta.properties
 hudi.properties
 metastore-site.xml
+.venv
