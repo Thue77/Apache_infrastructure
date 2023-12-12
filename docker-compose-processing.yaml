@@ -4,56 +4,17 @@
 version: "3.6"
 services:
   ad-hoc:
-    build:
-      context: ./
-      dockerfile: docker/ad-hoc/Dockerfile
-    # image: jupyterlab
-    container_name: ad-hoc
-    ports:
-      - 8888:8888
-    environment:
-      - PYTHONPATH=/opt/workspace/apps:/opt/workspace/scripts:/opt/workspace/dags
-      - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
-      - el_overblik_api_token=$el_overblik_api_token
-    volumes:
-      - ./src/ad-hoc:/opt/workspace
-      - ./src/airflow_dags:/opt/workspace/dags
-      - ./settings/jupyter:/root/.vscode-server
-    networks:
-      - my_persistent_network 
-    depends_on:
-      - spark-master
+    extends:
+      file: docker-compose-spark.yaml
+      service: ad-hoc
   spark-master:
-    build:
-      context: ./
-      dockerfile: docker/spark-master/Dockerfile
-    # image: spark-master
-    container_name: spark-master
-    environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-    ports:
-      - 8089:8080
-      - 7077:7077
-    networks:
-      - my_persistent_network  
+    extends:
+      file: docker-compose-spark.yaml
+      service: spark-master
   spark-worker-1:
-    build:
-      context: ./
-      dockerfile: docker/spark-worker/Dockerfile
-    # image: spark-worker
-    container_name: spark-worker-1
-    environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-      - SPARK_WORKER_CORES=1
-      - SPARK_WORKER_MEMORY=512m
-    ports:
-      - 8082:8081
-    # volumes:
-    #   - shared-workspace:/opt/workspace
-    depends_on:
-      - spark-master
-    networks:
-      - my_persistent_network  
+    extends:
+      file: docker-compose-spark.yaml
+      service: spark-worker-1
 
   postgresql:
     # image: docker.io/bitnami/postgresql:15

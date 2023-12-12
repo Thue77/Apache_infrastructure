@@ -20,11 +20,11 @@ logger = Logger.get_logger()
 storage_account_name = "adlsthuehomelakehousedev"
 # Set dataset name and landing path
 dataset_name = "ConsumptionDK3619codehour"
-data_source = "energi_data_service"
+data_source = "transaktioner"
 dataset_path = data_source + '/' + dataset_name
 container_name = "bronze"
 
-# landing_path = f"hdfs://namenode:9000/data/landing/energi_data_service/{dataset_name}"
+source_path = f"abfss://{container_name}@{storage_account_name}.dfs.core.windows.net/delta/{dataset_path}"
 destination_path = f"abfss://{container_name}@{storage_account_name}.dfs.core.windows.net/delta/{dataset_path}"
 
 delta_path = f"abfss://utility@{storage_account_name}.dfs.core.windows.net/delta"
