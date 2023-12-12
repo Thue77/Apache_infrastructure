@@ -1,4 +1,5 @@
 import datetime
+import os
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
 import logging
@@ -10,6 +11,7 @@ from cdk.common_modules.spark.spark_config import SparkConfig
 from cdk.common_modules.spark.spark_session_builder import SparkSessionBuilder
 from cdk.common_modules.models.connectors.hudi import HudiConnector
 from cdk.common_modules.delta_stores.delta_state import DeltaState
+from cdk.common_modules.pipelines.incremental_date_worker import LandingIncrementalDateWorker
 from cdk.common_modules.utility.logging import Logger
 
 # Set logging
@@ -72,9 +74,9 @@ hudi_options = {
 
 # Create connector for delta state
 logger.appinfo("Creating connector for delta state")
-state_connector = HudiConnector(from_dataset_name=source_dataset_name,
+state_connector = HudiConnector(from_dataset_name=os.path.join(source_dataset_path,source_dataset_name),
                                 to_dataset_name=destination_dataset_name,
-                                group_name=source_dataset_path,
+                                # group_name=source_dataset_path,
                                 to_layer=destination_container_name,
                                 spark=spark,
                                 delta_entity_name='delta_state',
@@ -91,7 +93,7 @@ if not FULL_LOAD:
     logger.appinfo(f"Delta state: {delta_state_value}")
 
     # Increment the delta state by one day
-    start_date = datetime.datetime.strptime(delta_state_value, "%Y-%m-%dT%H:%M") + datetime.timedelta(days=1)
+    start_date = datetime.datetime.strptime(delta_state_value, "%Y-%m-%dT%H:%M:%S") + datetime.timedelta(days=1)
 else:
     start_date = datetime.datetime(1970,1,1,0,0,0)
 

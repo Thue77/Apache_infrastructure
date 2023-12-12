@@ -15,7 +15,7 @@ class SparkSessionBuilder:
         self.master = "spark://spark-master:7077"
         self.spark_config = spark_config
     
-    def build(self):
+    def build(self) -> SparkSession:
         spark_session = (
             SparkSession.builder.appName(self.app_name)
             .master(self.master)
