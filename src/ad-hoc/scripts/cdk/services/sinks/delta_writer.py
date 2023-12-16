@@ -22,7 +22,15 @@ class DeltaWriter:
         self.mode = mode
         self.add_columns = add_columns
 
-    def write_data(self, df: DataFrame, file: File) -> None:
+    def initialize_non_existing_delta_table(self, df: DataFrame, file: File) -> None:
+        '''
+        Function to initialize a delta table if it does not exist. If the delta table exists, the function does nothing.
+        Any columns specified in the add_columns argument are added to the delta table as generated columns. They are used for partitioning if they exist in partition_columns.
+
+        Args:
+            df (DataFrame): DataFrame to write to delta table
+            file (File): File object
+        '''
         delta_table = (
             DeltaTable
                 .createIfNotExists(self.spark)
@@ -34,11 +42,22 @@ class DeltaWriter:
         if self.add_columns is not None:
             for column in self.add_columns:
                 delta_table = delta_table.addColumn(column[0],column[1],generatedAlwaysAs=column[2])
-        print(delta_table)
+
         if self.partition_columns is not None:
             delta_table = delta_table.partitionedBy(*self.partition_columns)
         delta_table.execute()
-        # if self.partition_columns is None:
+
+    def write_data(self, df: DataFrame, file: File) -> None:
+        '''
+        Function to write data to a delta table. If the delta table does not exist, it is created. If it exists, the data is according to the specified mode.
+        The partition columns are always generated and are specified at table creation.
+
+        Args:
+            df (DataFrame): DataFrame to write to delta table
+            file (File): File object
+        
+        '''
+        self.initialize_non_existing_delta_table(df, file)
         (
             df
                 .write
@@ -46,12 +65,3 @@ class DeltaWriter:
                 .mode(self.mode)
                 .save(os.path.join(file.path))
             )
-        # else:
-        #     (
-        #         df
-        #             .write
-        #             .format(file.type)
-        #             .mode(self.mode)
-        #             .partitionBy(*self.partition_columns) # See https://docs.delta.io/latest/delta-batch.html#partition-data&language-python
-        #             .save(os.path.join(file.path))
-        #         )
