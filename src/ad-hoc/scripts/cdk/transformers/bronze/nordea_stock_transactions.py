@@ -10,6 +10,7 @@ class Transformer:
             df
                 .withColumnRenamed("Opdateret den", "Opdateret_den")
                 .withColumnRenamed("Instrument navn", "Instrument_navn")
+                .drop("year","month","day")
         )
         df = DwhColumns().add_updated_timestamp(df)
         return df

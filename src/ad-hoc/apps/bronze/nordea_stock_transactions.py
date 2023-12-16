@@ -83,9 +83,6 @@ delta_state = DeltaState(state_connector).get_delta_store()
 
 # Define schema
 schema = T.StructType([
-    T.StructField("year", T.StringType(), True),
-    T.StructField("month", T.StringType(), True),
-    T.StructField("day", T.StringType(), True),
     T.StructField("Status", T.StringType(), True),
     T.StructField("Instrument navn", T.StringType(), True),
     T.StructField("Opdateret den", T.StringType(), True),
@@ -94,25 +91,18 @@ schema = T.StructType([
     T.StructField("Total", T.StringType(), True)
 ])
 
+# Define generated columns
+add_columns = [
+    ('year', 'INT', 'year(to_date(Opdateret_den,"dd-MM-yyyy"))')
+]
+
 # Create Reader, Writer and Transformer objects
 logger.appinfo("Creating Reader and Writer objects")
 data_reader=CsvReader(spark=spark, file=source_file, schema=schema, header=True, sep=";")
-data_writer=DeltaWriter(mode='append') if not FULL_LOAD else DeltaWriter(mode='overwrite')
+data_writer=DeltaWriter(spark=spark, mode='append', partition_columns=['year'], add_columns=add_columns) if not FULL_LOAD else DeltaWriter(spark=spark, mode='overwrite', partition_columns=['year'], add_columns=add_columns)
 
 # Create Transformer object
 logger.appinfo("Creating Transformer object")
-# class Transformer:
-#     def transform_data(self, df):
-#         df = DwhColumns().add_filename(df)
-#         df =  (
-#             df
-#                 .withColumnRenamed("Opdateret den", "Opdateret_den")
-#                 .withColumnRenamed("Instrument navn", "Instrument_navn")
-#         )
-#         df = DwhColumns().add_updated_timestamp(df)
-#         return df
-
-
 transformer=Transformer()
 
 # Create BronzeIncrementalDateWorker object

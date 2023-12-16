@@ -107,12 +107,6 @@ class BronzeIncrementalDateWorker:
         end_datetime: datetime.datetime = delta_state_value + increment
 
         while True:
-
-            # Creating file for current delta state
-            logger.info(f"Creating file for current delta state")
-            original_filename = self.file.name
-            self.file.name += f"_{delta_state_value}_{end_datetime}"
-
             # Set the partition columns
             logger.info(f"Setting partition columns")
             partition_columns = [('year', end_datetime.strftime('%Y')), ('month', end_datetime.strftime('%m')), ('day', end_datetime.strftime('%d'))]
@@ -138,9 +132,6 @@ class BronzeIncrementalDateWorker:
 
                 # Update the delta state
                 self.state_store.set_delta_state(end_datetime)
-            
-            # Reset the file name
-            self.file.name = original_filename
 
             # Increment the delta state by one day
             end_datetime = end_datetime + increment
