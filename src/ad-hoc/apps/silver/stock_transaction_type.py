@@ -1,0 +1,1 @@
+# TODO: Create a silver table for stock transaction types
