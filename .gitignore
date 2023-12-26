@@ -12,3 +12,4 @@ delta.properties
 hudi.properties
 metastore-site.xml
 .venv
+core-site.xml
