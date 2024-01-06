@@ -18,7 +18,7 @@ from cdk.common_modules.utility.logging import Logger
 from cdk.services.sources.csv_reader import CsvReader
 from cdk.services.sinks.delta_writer import DeltaWriter
 
-from cdk.transformers.bronze.nordea_stock_transactions import Transformer
+from transformers.bronze.nordea_stock_transactions import Transformer
 
 # Set logging
 Logger = Logger(Path(__file__).stem)
