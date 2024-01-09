@@ -1,5 +1,8 @@
 {
     "python.analysis.extraPaths": [
         "./scripts"
-    ]
+        ,"./apps/bronze"
+    ],
+    "python.analysis.autoImportCompletions": true,
+    "editor.hover.enabled": true
 }
