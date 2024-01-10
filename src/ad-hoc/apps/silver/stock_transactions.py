@@ -1,1 +1,0 @@
-# TODO: Create a silver table for stock transactions
