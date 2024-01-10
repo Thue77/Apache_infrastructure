@@ -1,6 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "./scripts"
+        "./scripts/open-data-lakehouse-modules"
         ,"./apps/bronze"
     ],
     "python.analysis.autoImportCompletions": true,
