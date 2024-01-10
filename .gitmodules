@@ -1,3 +1,6 @@
 [submodule "src/nifi_ingest"]
 	path = src/nifi_ingest
 	url = https://github.com/Thue77/test_nifi_ingestion.git
+[submodule "src/ad-hoc/scripts/open-data-lakehouse-modules"]
+	path = src/ad-hoc/scripts/open-data-lakehouse-modules
+	url = https://github.com/Thue77/open-data-lakehouse-modules.git
