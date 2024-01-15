@@ -10,6 +10,13 @@ Docker overview
 
 ![Image](./res/docker_containers.drawio.png)
 
+## Git cloning
+This project contains submodules, which may contain the code for the spark applications, python modules and Airflow Dags(Not yet implemented). This way the infrastructure stays separated from the code implemented for different ETL pipelines or ML jobs. 
+The submodules referenced in this project are private and could be replaced by any custom implementation to be run on the infrastructure. The locations of the submodules are:
+- [Spark appliations](/src/ad-hoc/apps/)
+- [Airflow Dags](/src/ad-hoc/dags/) (Not yet implemented)
+- [Nifi Registry](/src/nifi_ingest/) (Not in use at the moment)
+
 ## Getting started
 - The project may be started by first running `build.ps1` to build all custom images. 
 - Git repo should be initialized in [/src/nifi/](/src/nifi/) in order to use the Nifi registry. 
