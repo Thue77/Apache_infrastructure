@@ -9,7 +9,7 @@ services:
     ports:
       - 8888:8888
     environment:
-      - PYTHONPATH=/opt/workspace/apps:/opt/workspace/scripts/open-data-lakehouse-modules:/opt/workspace/dags
+      - PYTHONPATH=/opt/workspace/apps:/opt/workspace/modules/open-data-lakehouse-modules:/opt/workspace/dags
       - ADLS_adlsthuehomelakehousedev_access_key=$data_lake_access_key
       - el_overblik_api_token=$el_overblik_api_token
     volumes:

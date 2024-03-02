@@ -13,7 +13,7 @@
 
 # sys.path.append(str(scripts_path))
 
-# from cdk.common_modules.hello_world import hello_world
+# from src.common_modules.hello_world import hello_world
 
 # # A DAG represents a workflow, a collection of tasks
 # with DAG(dag_id="test-dag", start_date=datetime(2022, 1, 1), schedule="@daily", catchup=False) as dag:

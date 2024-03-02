@@ -1,6 +1,6 @@
 # ARG debian_buster_image_tag=8-jre
-FROM bitnami/python:3.9.18
-LABEL manteiner="Thomas Sørensen <thomas@thuesoerensen.dk>"
+FROM bitnami/python:3.9-debian-11
+LABEL mantainer="Thomas Sørensen <thomas@thuesoerensen.dk>"
 
 # Switch to root user to install packages
 # USER root
